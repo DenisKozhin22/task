@@ -14,11 +14,13 @@ import debounce from 'lodash.debounce'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { usePatchUser } from '@/hooks/Auth/usePatchUser'
 
+// Интерфейс для пропсов компонента
 interface IBasicDataStepProps {
-	onNextStep: () => void
-	onPrevStep: () => void
+	onNextStep: () => void // Функция перехода на следующий шаг
+	onPrevStep: () => void //Функция перехода на предыдущий шаг
 }
 
+// Интерфейс для формы
 interface IBasicDataForm {
 	city_id: number | null
 	city_name: string
@@ -27,6 +29,7 @@ interface IBasicDataForm {
 }
 
 const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
+	// Форма ввода основных данных
 	const {
 		handleSubmit,
 		register,
@@ -41,13 +44,17 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 	const [selectedCity, setSelectedCity] = useState<string>('')
 	const [selectedCityName, setSelectedCityName] = useState<string>('')
 	const [selectedCityId, setSelectedCityId] = useState<number | null>(null)
+
+	// Состояние показа списка городов
 	const [showCities, setShowCities] = useState<boolean>(false)
 
+	// Хук для отправки обновленных данных пользователя на сервер
 	const { mutateAsync: patchUser } = usePatchUser()
 
 	// Функция запроса городов
 	const { data: cities } = useGetCity(city)
 
+	// Debounce функция поиска города
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const debouncedSearchCity = useCallback(
 		debounce((searchValue: string) => {
@@ -56,13 +63,14 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 		[]
 	)
 
+	// Функция обработчик поиска города
 	const handleDebouncedSearchCity = (event: ChangeEvent<HTMLInputElement>) => {
 		const searchValue = event.target.value
 		debouncedSearchCity(searchValue)
 		setShowCities(searchValue.trim() !== '')
 	}
 
-	// Функция выбора города
+	// Функция обработчик выбора города
 	const handleCitySelect = (cityTitle: string, cityId: number) => {
 		setSelectedCity(cityTitle)
 		setSelectedCityId(cityId)
@@ -71,7 +79,7 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 		setShowCities(false)
 	}
 
-	// Функция сохранения
+	// Функция сохранения основных данных
 	const onSubmit: SubmitHandler<IBasicDataForm> = async data => {
 		try {
 			const { city_name, ...submitData } = data
@@ -87,6 +95,7 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 					Имя
 				</FormLabel>
 
+				{/* Input ввода имени */}
 				<Input
 					id='name'
 					type='text'
@@ -100,6 +109,8 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 						required: 'Обязательное поле'
 					})}
 				/>
+
+				{/* Ошибка input имени */}
 				<FormErrorMessage
 					mb='2'
 					mt='0'
@@ -115,6 +126,7 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 					Фамилия
 				</FormLabel>
 
+				{/* Input ввода фамилии */}
 				<Input
 					id='surName'
 					type='text'
@@ -127,6 +139,8 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 						required: 'Обязательное поле'
 					})}
 				/>
+
+				{/* Input ввода фамилии */}
 				<FormErrorMessage
 					mb='2'
 					mt='0'
@@ -142,6 +156,7 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 					Выберите ваш город
 				</FormLabel>
 
+				{/* Input ввода города */}
 				<Input
 					id='city'
 					type='text'
@@ -191,7 +206,7 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 						))}
 					</List>
 				)}
-
+				{/* Ошибка input города */}
 				<FormErrorMessage
 					mb='2'
 					mt='0'
@@ -203,6 +218,7 @@ const BasicDataStep: FC<IBasicDataStepProps> = ({ onNextStep, onPrevStep }) => {
 				</FormErrorMessage>
 			</FormControl>
 
+			{/* Кнопка сохранения данных */}
 			<Button
 				type='submit'
 				w='full'

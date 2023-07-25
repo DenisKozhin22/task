@@ -26,6 +26,7 @@ const persistConfig = {
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
 
+// Глобальное хранилище
 export const store = configureStore({
 	reducer: persistedReducer,
 	middleware: getDefaultMiddleware =>

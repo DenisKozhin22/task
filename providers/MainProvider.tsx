@@ -8,6 +8,7 @@ import { ChakraProvider, theme } from '@chakra-ui/react'
 import { PersistGate } from 'redux-persist/integration/react'
 import Layout from '../components/Layout/Layout'
 
+// Провайдер react query
 const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
@@ -16,11 +17,15 @@ const queryClient = new QueryClient({
 	}
 })
 
+// Основной провайдер
 const MainProvider: FC<{ children: ReactNode }> = ({ children }) => {
 	return (
 		<QueryClientProvider client={queryClient}>
+			{/* Провайдер redux toolkit */}
 			<Provider store={store}>
+				{/* Persist провайдер */}
 				<PersistGate loading={null} persistor={persistor}>
+					{/* Chakra ui провайдер */}
 					<ChakraProvider theme={theme}>
 						<Layout>{children}</Layout>
 					</ChakraProvider>

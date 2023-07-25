@@ -1,35 +1,26 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
+// Интерфейс стейта модального окна
 interface IModalState {
 	isOpenModal: boolean
-	activeForm: number
-	phone: string
 }
 
+// Изначальное состояние модального окна
 const initialState: IModalState = {
-	isOpenModal: false,
-	activeForm: 0,
-	phone: ''
+	isOpenModal: false
 }
 
 const modalSlice = createSlice({
 	name: 'modal',
 	initialState,
 	reducers: {
+		// Функция открытия модального окна
 		onOpenStateModal: state => {
 			state.isOpenModal = true
 		},
+		// Функция закрытия модального окна
 		onCloseStateModal: state => {
 			state.isOpenModal = false
-		},
-		nextForm: state => {
-			state.activeForm += 1
-		},
-		prevForm: state => {
-			state.activeForm -= 1
-		},
-		setPhone: (state, action: PayloadAction<string>) => {
-			state.phone = action.payload
 		}
 	}
 })

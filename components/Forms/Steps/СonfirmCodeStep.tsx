@@ -16,13 +16,15 @@ import InputMask from 'react-input-mask'
 import { useLoginConfirm } from '@/hooks/Auth/useLoginConfirm'
 import { useAppSelector } from '@/hooks/useAppSelector'
 
+// Интерфейс для пропсов компонента
 interface IConfirmCodeStepProps {
-	phoneNumber: string
-	onNextStep: () => void
-	isConfirmCode: string
+	phoneNumber: string // Изначальное значение номера телефона, который был введен в прошлом шаге
+	onNextStep: () => void // Функция перехода на следующий шаг
+	isConfirmCode: string // Код подтверждения
 }
 
 const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, isConfirmCode }) => {
+	// Форма ввода номера телефона
 	const {
 		handleSubmit,
 		register,
@@ -34,16 +36,23 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 		mode: 'onChange'
 	})
 
+	// Состояния кода подтверждения
 	const [enteredCode, setEnteredCode] = useState('')
 	const [confirmationCode, setConfirmationCode] = useState(isConfirmCode)
+
+	// Состояния таймера
 	const [remainingTime, setRemainingTime] = useState(60)
 	const [isTimerActive, setIsTimerActive] = useState(true)
 
+	// Данные пользователя из глобального хранилища
 	const { user } = useAppSelector(state => state.user)
+
+	// Хук для отправки запроса кода подтверждения на сервер
 	const { mutateAsync } = useLoginConfirm()
 
+	// Функция повторной отправки кода подтверждения
 	const handleResendCode = () => {
-		// Запрос зваонка на номер телефона
+		// Запрос звонка на номер телефона
 		// setIsConfirmCode(newConfirmCode)
 
 		setRemainingTime(60)
@@ -52,10 +61,11 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 		setValue('confirm_code', '')
 	}
 
-	const handleChange = (event: HTMLInputElement) => {
+	// Функция обработки ввода кода подтверждения в input
+	const handleChangeConfirmCode = (event: HTMLInputElement) => {
 		setEnteredCode(event.value)
-		console.log(confirmationCode === enteredCode)
 
+		// Если введенный код равен коду, пришедшему ранее с сервера и в глобальном хранилие есть данные пользователя, то отправляется запрос на сервер с подтверждением кода
 		if (event.value === confirmationCode) {
 			if (user?.id) {
 				mutateAsync({
@@ -64,11 +74,13 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 				})
 			}
 
+			// Остановка таймера и переход на следующий шаг
 			setIsTimerActive(false)
 			onNextStep()
 		}
 	}
 
+	// Обработчик таймера
 	useEffect(() => {
 		let interval: NodeJS.Timer
 
@@ -85,6 +97,7 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 		return () => clearInterval(interval)
 	}, [isTimerActive, remainingTime])
 
+	// Функция submit
 	const onSubmit = async () => {}
 
 	return (
@@ -99,6 +112,7 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 					Телефон
 				</FormLabel>
 
+				{/* Input номера телефона, в значение которого занесен номер телефона, введенный в прошлом шаге */}
 				<Input
 					id='phone'
 					type='tel'
@@ -119,6 +133,7 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 			</Text>
 
 			<FormControl isInvalid={Boolean(errors.confirm_code || confirmationCode !== enteredCode)}>
+				{/* Input кода подтверждения */}
 				<Input
 					{...register('confirm_code', {
 						required: 'Поле должно быть обязательным.',
@@ -134,9 +149,10 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 					maxLength={4}
 					placeholder='****'
 					autoFocus
-					onChange={e => handleChange(e.target)}
+					onChange={e => handleChangeConfirmCode(e.target)}
 				/>
 
+				{/* Ошибка валидации input с кодом подтверждения */}
 				{errors.confirm_code && errors.confirm_code.type === 'required' && (
 					<FormErrorMessage my='2' ml='12px' color='#FF0000' fontSize='12px' fontWeight='normal'>
 						{errors.confirm_code.message}
@@ -149,6 +165,8 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 					</FormErrorMessage>
 				)}
 			</FormControl>
+
+			{/* Таймер */}
 			{isTimerActive ? (
 				<Text fontSize='14px' fontWeight='normal' mt='16px' mb='24px'>
 					Повторный звонок возможен через
@@ -166,6 +184,7 @@ const ConfirmCodeStep: FC<IConfirmCodeStepProps> = ({ phoneNumber, onNextStep, i
 					Запросить звонок повторно
 				</Button>
 			)}
+
 			<Text color='#32353D' fontSize='12px' fontWeight='normal' textAlign='justify'>
 				Нажимая кнопку «Подтвердить номер телефона», я даю свое согласие на сбор и обработку моих
 				<br />

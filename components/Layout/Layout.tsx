@@ -13,7 +13,10 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
 				<HeaderTop />
 				<Header />
 				<Container maxW='1190px' px='10px' flex='1'>
+					{/* Хлебные крошки. Должны браться из URL */}
 					<MyBreadcrumb />
+
+					{/* Дочерний компонет в ayout*/}
 					{children}
 				</Container>
 				<Footer />

@@ -4,12 +4,14 @@ import { useMutation } from 'react-query'
 import { useActions } from '../useActions'
 
 export const usePatchUser = () => {
+	// Функция сохранения данных пользователя в глобальное хранилище
 	const { setUser } = useActions()
+
+	// Функция запроса к серверу для обновления данных пользователя
 	return useMutation('patch user', (data: IPatchUser) => authService.patchUser(data), {
 		onSuccess(data) {
-			if (data.data.id) {
-				setUser(data.data)
-			}
+			// Сохранение данных пользователя в глобальное хранилище, если в ответе содержатся данные пользователя
+			if (data.data.id) setUser(data.data)
 		}
 	})
 }

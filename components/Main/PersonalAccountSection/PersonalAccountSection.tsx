@@ -16,10 +16,10 @@ import {
 	VStack
 } from '@chakra-ui/react'
 import { FC } from 'react'
-import NextLink from 'next/link'
 import PersonalAccounFrom from './PersonalAccounFrom/PersonalAccounFrom'
 import { useGetUser } from '@/hooks/Auth/useGetUser'
 
+// Фейк массив табов для sidebar
 const sideBarLinks = [
 	{
 		icon: (
@@ -75,13 +75,17 @@ const sideBarLinks = [
 ]
 
 const PersonalAccountSection: FC = () => {
+	// Функция запроса данных пользователя с сервера
 	useGetUser()
+
+	// Данные пользователя с глобального хранилища
 	const { user } = useAppSelector(state => state.user)
 	return (
 		<Box w='full'>
 			<Tabs variant='unstyled' display='flex'>
-				<Box w='278px' paddingTop='36px'>
-					<Flex gap='8px'>
+				<Box minW='278px' paddingTop='36px' mr='20px'>
+					{/* Блок с аватаром и именем пользователя */}
+					<Flex gap='8px' py='8px' px='12px'>
 						<Avatar
 							w='40px'
 							h='40px'
@@ -92,11 +96,12 @@ const PersonalAccountSection: FC = () => {
 							}
 						/>
 						<Text color='#32353D' fontSize='16px' lineHeight='24px' fontWeight='semibold'>
-							{user?.first_name} {user?.last_name}
+							{user?.last_name} {user?.first_name}
 						</Text>
 					</Flex>
-					<Divider w='254px' color='#E8EAED' my='8px' />
-					<TabList display='flex' flexDirection='column'>
+					<Divider w='254px' color='#E8EAED' my='8px' mx='auto' />
+					{/* Рендер списка табов */}
+					<TabList display='flex' flexDirection='column' ml='12px' gap='4px'>
 						{sideBarLinks.map(item => (
 							<Tab
 								key={item.id}
@@ -104,7 +109,8 @@ const PersonalAccountSection: FC = () => {
 								justifyContent='start'
 								alignItems='center'
 								gap='8px'
-								w='full'
+								py='8px'
+								px='12px'
 								color='#535B71'
 								fontSize='14px'
 								fontWeight='semibold'
@@ -115,7 +121,9 @@ const PersonalAccountSection: FC = () => {
 							</Tab>
 						))}
 					</TabList>
+					<Divider color='#E8EAED' my='8px' />
 				</Box>
+				{/* Контент табов. Первые два компонента пустые, так как их не было в макете */}
 				<TabPanels mb='90px'>
 					<TabPanel p='0'>
 						<p>Уведомления!</p>

@@ -1,6 +1,15 @@
 'use client'
 
-import { ChangeEvent, MouseEvent, FC, useRef, useState, useCallback } from 'react'
+import {
+	ChangeEvent,
+	MouseEvent,
+	FC,
+	useRef,
+	useState,
+	useCallback,
+	useEffect,
+	useMemo
+} from 'react'
 import { useAppSelector } from '@/hooks/useAppSelector'
 import {
 	Box,
@@ -22,75 +31,96 @@ import { ChevronDownIcon } from '@chakra-ui/icons'
 import CustomCalendar from '@/components/CustomCalendar/CustomCalendar'
 import debounce from 'lodash.debounce'
 import { useGetCity } from '@/hooks/City/useGetCity'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { SubmitHandler, useForm, Controller } from 'react-hook-form'
 import { IUser } from '@/services/auth/auth.types'
 import { useGetAdress } from '@/hooks/City/useGetAdress'
 import { useUploadAvatar } from '@/hooks/Auth/useUploadAvatar'
 import { usePatchUser } from '@/hooks/Auth/usePatchUser'
-import { formatPhoneNumber } from '@/components/Forms/formaterPhone'
-import moment from 'moment'
 import { useDeleteAvatar } from '@/hooks/Auth/useDeleteAvatar'
 import { useActions } from '@/hooks/useActions'
+import { formatPhoneNumber } from '@/components/Forms/formaterPhone'
+
+// Интерфейс для пропсов компонента
 export interface IPersonalAccounFrom extends Omit<IUser, 'photo'> {
-	city_id: number | null
-	city_name: string
+	city_id: number | null // ID города
+	city_name: string // Название города
 }
 
 const PersonalAccounFrom: FC = () => {
+	// Данные пользователя из глобального хранилища
 	const { user } = useAppSelector(state => state.user)
+
+	// Функция сохранения ссылки аватара в глобальное хранилище
 	const { setUserPhoto } = useActions()
+
+	// Хук для отправки обновленных данных пользователя на сервер
 	const { mutateAsync: patchUser } = usePatchUser()
 
-	// Форма
+	// Изначальные значения формы
+	const initialValues = {
+		id: user?.id,
+		first_name: user?.first_name,
+		last_name: user?.last_name,
+		middle_name: user?.middle_name,
+		city_id: user?.city?.id,
+		city_name: user?.city?.title,
+		phone: user?.phone,
+		birthday: user?.birthday
+	}
+
+	// Форма обновления данных пользователя
 	const {
+		control,
 		handleSubmit,
 		register,
 		setValue,
+		getValues,
 		formState: { errors, isValid }
 	} = useForm<IPersonalAccounFrom>({
 		mode: 'onSubmit',
-		defaultValues: {
-			id: user?.id,
-			first_name: user?.first_name,
-			last_name: user?.last_name,
-			has_required_data: true,
-			phone: user?.phone,
-			sex: user?.sex,
-			birthday: user?.birthday,
-			middle_name: user?.middle_name,
-			city_name: user?.city?.title
-		}
+		defaultValues: initialValues
 	})
 
 	// Состояния аватарки
 	const imageInputRef = useRef<HTMLInputElement | null>(null)
 	const [image, setImage] = useState<File | null>(null)
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+
+	// Хук для загрузки аватара
 	const { mutateAsync: onUploadAvatar } = useUploadAvatar()
+
+	// Хук для удаления аватара
 	const { mutateAsync: onDeleteAvatar } = useDeleteAvatar()
 
 	// Состояния города
 	const [city, setCity] = useState<string>('')
-	const [selectedCityName, setSelectedCityName] = useState<string>('')
+	const [selectedCityName, setSelectedCityName] = useState<string>(user?.city?.title || '')
 	const [selectedCityId, setSelectedCityId] = useState<number | null>(null)
+
+	// Состояние показа списка городов
 	const [showCities, setShowCities] = useState<boolean>(false)
 
+	// Хук для запроса данных городов с сервера
 	const { data: cities } = useGetCity(city)
 
 	// Состояния адреса
 	const [adress, setAdress] = useState<string>('')
 	const [selectedAdressName, setSelectedAdressName] = useState<string>('')
+
+	// Состояние показа списка адресов
 	const [showAddresses, setShowAddresses] = useState<boolean>(false)
 
+	// Хук для запроса данных адресов с сервера
 	const { data: addresses } = useGetAdress(`г ${selectedCityName}, ${adress}`)
 
-	// Действия над аватаркой
+	// Функция клика на input
 	const onClickImageInput = () => {
 		if (imageInputRef.current !== null) {
 			imageInputRef.current.click()
 		}
 	}
 
+	// Функция обновления или загрузки аватара
 	const onSetImage = async (e: ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 
@@ -99,7 +129,6 @@ const PersonalAccounFrom: FC = () => {
 
 			setImage(file)
 			setPreviewImage(previewURL)
-			console.log(previewURL)
 
 			const formData = new FormData()
 			formData.append('file', file)
@@ -113,13 +142,14 @@ const PersonalAccounFrom: FC = () => {
 		}
 	}
 
+	// Функция удаления аватара
 	const onDeleteImage = (e: MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation()
 		setImage(null)
 		onDeleteAvatar()
 	}
 
-	// Действия с выбором города
+	// Debounce функция поиска города
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const debouncedSearchCity = useCallback(
 		debounce((searchValue: string) => {
@@ -128,12 +158,14 @@ const PersonalAccounFrom: FC = () => {
 		[]
 	)
 
+	// Функция обработчик поиска города
 	const handleDebouncedSearchCity = (event: ChangeEvent<HTMLInputElement>) => {
 		const searchValue = event.target.value
 		debouncedSearchCity(searchValue)
 		setShowCities(searchValue.trim() !== '')
 	}
 
+	// Функция обработчик выбора города
 	const handleCitySelect = (cityTitle: string, cityId: number) => {
 		setSelectedCityId(cityId)
 		setSelectedCityName(cityTitle)
@@ -143,7 +175,7 @@ const PersonalAccounFrom: FC = () => {
 		setSelectedAdressName('')
 	}
 
-	// Действия с выбором адреса
+	// Debounce функция поиска адресов
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const debouncedSearchAdress = useCallback(
 		debounce((searchValue: string) => {
@@ -152,33 +184,40 @@ const PersonalAccounFrom: FC = () => {
 		[]
 	)
 
+	// Функция обработчик поиска адресов
 	const handleDebouncedSearchAdress = (event: ChangeEvent<HTMLInputElement>) => {
 		const searchValue = event.target.value
 		debouncedSearchAdress(searchValue)
 		setShowAddresses(searchValue.trim() !== '')
 	}
 
+	// Функция обработчик выбора адреса
 	const handleAdressSelect = (adressTitle: string) => {
 		setSelectedAdressName(adressTitle)
 		setShowAddresses(false)
 	}
 
+	// Функция submit для отправки обновленных данных пользователя на сервер
 	const onSubmit: SubmitHandler<IPersonalAccounFrom> = async data => {
 		try {
-			const { city_name, id, phone, birthday, ...submitdata } = data
-
-			const updatePhone = phone ? formatPhoneNumber(phone) : ''
-			const updateBirthday = birthday ? moment(birthday).format('YYYY-MM-DD') : ''
+			const { city_name, id, phone, ...submitdata } = data
+			const updatePhone = phone ? { phone: formatPhoneNumber(phone) } : null
 
 			const newSubmitData = {
 				...submitdata,
-				phone: updatePhone,
-				birthday: updateBirthday
+				...updatePhone
 			}
+
+			console.log(newSubmitData)
 			patchUser(newSubmitData)
 		} catch (error) {
 			console.log(error)
 		}
+	}
+
+	// Функция обработчик смены даты рождения
+	const handleDateChange = (date: string) => {
+		setValue('birthday', date, { shouldValidate: true })
 	}
 
 	return (
@@ -186,8 +225,9 @@ const PersonalAccounFrom: FC = () => {
 			<Heading fontSize='24px' fontWeight='semibold'>
 				Настройки аккаунта
 			</Heading>
-			<Box as='form' my='32px' onSubmit={handleSubmit(onSubmit)}>
-				<Flex gap='20px' mb='40px'>
+			<Box as='form' mt='32px' onSubmit={handleSubmit(onSubmit)}>
+				{/* Компонент загрузки аватара */}
+				<Flex gap='20px'>
 					<Box
 						display='flex'
 						position='relative'
@@ -196,15 +236,15 @@ const PersonalAccounFrom: FC = () => {
 						cursor='pointer'
 						minW='200px'
 						h='200px'
-						border={previewImage ? '' : '1px dashed #3579F3'}
-						rounded='base'
+						border={previewImage || user?.photo ? '' : '1px dashed #3579F3'}
+						rounded='8px'
 						onClick={onClickImageInput}>
 						{previewImage || user?.photo ? (
 							<Image
 								src={previewImage || `http://185.22.61.79:8000${user?.photo}`}
 								width={200}
 								height={200}
-								rounded='base'
+								rounded='8px'
 								alt='user avatar'
 							/>
 						) : (
@@ -213,7 +253,9 @@ const PersonalAccounFrom: FC = () => {
 							</Text>
 						)}
 
+						{/* Кнопки действий над аватаром */}
 						<Flex position='absolute' zIndex={10000} bottom='-20px'>
+							{/* Кнопка изменения */}
 							<Button
 								bg='#3579F3'
 								borderRadius='40px 0px 0px 40px'
@@ -231,6 +273,8 @@ const PersonalAccounFrom: FC = () => {
 									/>
 								</svg>
 							</Button>
+
+							{/* Кнопка удаления */}
 							<Button
 								bg='#E30613'
 								borderRadius='0px 40px 40px 0px'
@@ -250,6 +294,8 @@ const PersonalAccounFrom: FC = () => {
 								</svg>
 							</Button>
 						</Flex>
+
+						{/* Скрытый input file */}
 						<Input
 							type='file'
 							name='file'
@@ -266,21 +312,32 @@ const PersonalAccounFrom: FC = () => {
 								htmlFor='last_name'
 								color='#32353D'
 								fontSize='14px'
-								ml='12px'
+								m='0'
 								fontWeight='semibold'
 								lineHeight='22.4px'>
 								Фамилия
 							</FormLabel>
-							<Input
-								id='last_name'
-								placeholder='Введите фамилию'
-								maxW='468px'
-								type='text'
-								fontSize='14px'
-								color='#32353D'
-								fontWeight='normal'
-								bg='#F4F6FB'
-								{...register('last_name')}
+
+							{/* Input ввода фамилии */}
+							<Controller
+								name='last_name'
+								control={control}
+								defaultValue={user?.last_name}
+								render={({ field }) => (
+									<Input
+										{...field}
+										id='last_name'
+										placeholder='Введите фамилию'
+										maxW='468px'
+										type='text'
+										fontSize='14px'
+										color='#32353D'
+										fontWeight='normal'
+										bg='#F4F6FB'
+										value={field.value || ''}
+									/>
+								)}
+								rules={{ required: true }}
 							/>
 						</FormControl>
 						<Divider color='#E8EAED' />
@@ -289,21 +346,32 @@ const PersonalAccounFrom: FC = () => {
 								htmlFor='first_name'
 								color='#32353D'
 								fontSize='14px'
-								ml='12px'
+								m='0'
 								fontWeight='semibold'
 								lineHeight='22.4px'>
 								Имя
 							</FormLabel>
-							<Input
-								id='first_name'
-								placeholder='Введите имя'
-								maxW='468px'
-								type='text'
-								fontSize='14px'
-								color='#32353D'
-								fontWeight='normal'
-								bg='#F4F6FB'
-								{...register('first_name')}
+
+							{/* Input ввода имени */}
+							<Controller
+								name='first_name'
+								control={control}
+								defaultValue={user?.first_name}
+								render={({ field }) => (
+									<Input
+										{...field}
+										id='last_name'
+										placeholder='Введите имя'
+										maxW='468px'
+										type='text'
+										fontSize='14px'
+										color='#32353D'
+										fontWeight='normal'
+										bg='#F4F6FB'
+										value={field.value || ''}
+									/>
+								)}
+								rules={{ required: true }}
 							/>
 						</FormControl>
 						<Divider color='#E8EAED' />
@@ -312,53 +380,73 @@ const PersonalAccounFrom: FC = () => {
 								htmlFor='middle_name'
 								color='#32353D'
 								fontSize='14px'
-								ml='12px'
+								m='0'
 								fontWeight='semibold'
 								lineHeight='22.4px'>
 								Отчество
 							</FormLabel>
-							<Input
-								id='middle_name'
-								placeholder='Введите отчество'
-								maxW='468px'
-								type='text'
-								fontSize='14px'
-								color='#32353D'
-								fontWeight='normal'
-								bg='#F4F6FB'
+
+							{/* Input ввода отчества */}
+							<Controller
+								name='middle_name'
+								control={control}
 								defaultValue={user?.middle_name}
-								{...register('middle_name')}
+								render={({ field }) => (
+									<Input
+										{...field}
+										id='last_name'
+										placeholder='Введите отчество'
+										maxW='468px'
+										type='text'
+										fontSize='14px'
+										color='#32353D'
+										fontWeight='normal'
+										bg='#F4F6FB'
+										value={field.value || ''}
+									/>
+								)}
+								rules={{ required: true }}
 							/>
 						</FormControl>
 					</Flex>
 				</Flex>
 				<Flex flexDirection='column'>
-					<Divider color='#E8EAED' />
+					<Divider color='#E8EAED' mt='25px' />
 					<FormControl display='flex' justifyContent='space-between' gap='24px' my='15px'>
 						<FormLabel
 							htmlFor='sex'
 							color='#32353D'
 							fontSize='14px'
-							ml='12px'
+							m='0'
 							fontWeight='semibold'
 							lineHeight='22.4px'>
 							Пол
 						</FormLabel>
 
-						<Select
-							id='sex'
-							defaultValue={user?.sex}
-							placeholder='Выберете пол'
-							maxW='535px'
-							fontSize='14px'
-							color='#6D7589'
-							fontWeight='normal'
-							bg='#F4F6FB'
-							icon={<ChevronDownIcon color='#3579F3 !important' />}
-							{...register('sex')}>
-							<option value='male'>Мужчина</option>
-							<option value='female'>Женщина</option>
-						</Select>
+						{/* Select выбора пола */}
+						<Controller
+							name='sex'
+							control={control}
+							defaultValue={user?.sex || ''}
+							render={({ field }) => (
+								<Select
+									{...field}
+									id='sex'
+									placeholder='Выберете пол'
+									maxW='535px'
+									fontSize='14px'
+									color='#6D7589'
+									fontWeight='normal'
+									bg='#F4F6FB'
+									value={field.value || ''}
+									onChange={e => field.onChange(e.target.value)}
+									icon={<ChevronDownIcon color='#3579F3 !important' />}>
+									<option value='male'>Мужчина</option>
+									<option value='female'>Женщина</option>
+								</Select>
+							)}
+							rules={{ required: true }}
+						/>
 					</FormControl>
 					<Divider color='#E8EAED' />
 					<FormControl display='flex' justifyContent='space-between' gap='24px' my='15px'>
@@ -366,12 +454,14 @@ const PersonalAccounFrom: FC = () => {
 							htmlFor='birthday'
 							color='#32353D'
 							fontSize='14px'
-							ml='12px'
+							m='0'
 							fontWeight='semibold'
 							lineHeight='22.4px'>
 							Дата рождения
 						</FormLabel>
-						<CustomCalendar register={register} />
+
+						{/* Кастомный календарь с выбором даты рождения */}
+						<CustomCalendar onChange={handleDateChange} initialValue={user?.birthday} />
 					</FormControl>
 					<Divider color='#E8EAED' />
 					<FormControl
@@ -384,15 +474,16 @@ const PersonalAccounFrom: FC = () => {
 							htmlFor='city'
 							color='#32353D'
 							fontSize='14px'
-							ml='12px'
+							m='0'
 							fontWeight='semibold'
 							lineHeight='22.4px'>
 							Город
 						</FormLabel>
+
+						{/* Input ввода города */}
 						<Input
 							id='city'
 							type='text'
-							defaultValue={user?.city?.title ? user?.city?.title : ''}
 							placeholder='Выберете город'
 							maxW='535px'
 							fontSize='14px'
@@ -402,6 +493,7 @@ const PersonalAccounFrom: FC = () => {
 							onFocus={() => setShowCities(city.trim() !== '')}
 							value={selectedCityName}
 							{...register('city_name', {
+								required: true,
 								onChange: e => {
 									setSelectedCityName(e.target.value)
 									setSelectedCityId(null)
@@ -452,12 +544,13 @@ const PersonalAccounFrom: FC = () => {
 							htmlFor='address'
 							color='#32353D'
 							fontSize='14px'
-							ml='12px'
+							m='0'
 							fontWeight='semibold'
 							lineHeight='22.4px'>
-							Адресс
+							Адрес
 						</FormLabel>
 
+						{/* Input ввода адреса */}
 						<Input
 							id='address'
 							type='text'
@@ -475,7 +568,7 @@ const PersonalAccounFrom: FC = () => {
 							}}
 						/>
 
-						{/* Список адрессов */}
+						{/* Список адресов */}
 						{addresses && showAddresses && addresses.data.length > 0 && (
 							<List
 								position='absolute'
@@ -511,28 +604,40 @@ const PersonalAccounFrom: FC = () => {
 							htmlFor='phoneNumber'
 							color='#32353D'
 							fontSize='14px'
-							ml='12px'
+							m='0'
 							fontWeight='semibold'
 							lineHeight='22.4px'>
 							Телефон
 						</FormLabel>
-						<Input
-							id='phone'
-							type='tel'
-							placeholder='+7'
-							maxW='535px'
-							fontSize='14px'
-							color='#6D7589'
-							fontWeight='normal'
-							bg='#F4F6FB'
-							as={InputMask}
-							mask='+7 (999) 999-99-99'
-							maskChar='_'
-							autoFocus
-							{...register('phone')}
+
+						{/* Input ввода номера телефона */}
+						<Controller
+							name='phone'
+							control={control}
+							defaultValue={user?.phone}
+							render={({ field }) => (
+								<Input
+									{...field}
+									id='phone'
+									type='tel'
+									placeholder='+7'
+									maxW='535px'
+									fontSize='14px'
+									color='#6D7589'
+									fontWeight='normal'
+									bg='#F4F6FB'
+									as={InputMask}
+									mask='+7 (999) 999-99-99'
+									maskChar='_'
+									value={field.value || ''}
+								/>
+							)}
+							rules={{ required: true }}
 						/>
 					</FormControl>
 				</Flex>
+
+				{/* Кнопка сохранения обновленный данных пользователя */}
 				<Button
 					type='submit'
 					display='block'
@@ -544,6 +649,10 @@ const PersonalAccounFrom: FC = () => {
 					color='white'
 					fontSize='16px'
 					fontWeight='semibold'
+					isDisabled={getValues('birthday') === null && isValid}
+					_disabled={{
+						opacity: 0.3
+					}}
 					_hover={{ bg: '#3579F3' }}>
 					Сохранить
 				</Button>

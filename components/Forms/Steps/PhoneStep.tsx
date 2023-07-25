@@ -14,17 +14,20 @@ import InputMask from 'react-input-mask'
 import { formatPhoneNumber } from '../formaterPhone'
 import { useLoginRequest } from '@/hooks/Auth/useLoginRequest'
 
+// Интерфейс для пропсов компонента
 interface IPhoneStepProps {
-	onNextStep: () => void
-	onPhoneNumberChange: (phoneNumber: string) => void
-	onSetConfirmCode: (confirmCode: string) => void
+	onNextStep: () => void // Функция перехода на следующий шаг
+	onPhoneNumberChange: (phoneNumber: string) => void // Функция для состояния номера телефона
+	onSetConfirmCode: (confirmCode: string) => void // Функция для состояние кода подтверждения
 }
 
+// Интерфейс для формы
 interface IPhoneStepForm {
 	phone: string
 }
 
 const PhoneStep: FC<IPhoneStepProps> = ({ onNextStep, onPhoneNumberChange }) => {
+	// Форма ввода номера телефона
 	const {
 		handleSubmit,
 		register,
@@ -32,8 +35,11 @@ const PhoneStep: FC<IPhoneStepProps> = ({ onNextStep, onPhoneNumberChange }) => 
 	} = useForm<IPhoneStepForm>({
 		mode: 'onChange'
 	})
+
+	// Хук для отправки номера телефона на сервер
 	const { mutateAsync } = useLoginRequest()
 
+	// Функция submit
 	const onSubmit: SubmitHandler<IPhoneStepForm> = async data => {
 		try {
 			const phone = formatPhoneNumber(data.phone)
@@ -44,7 +50,6 @@ const PhoneStep: FC<IPhoneStepProps> = ({ onNextStep, onPhoneNumberChange }) => 
 			console.log(error)
 		}
 	}
-
 
 	return (
 		<Box as='form' onSubmit={handleSubmit(onSubmit)}>
@@ -58,6 +63,7 @@ const PhoneStep: FC<IPhoneStepProps> = ({ onNextStep, onPhoneNumberChange }) => 
 					Телефон
 				</FormLabel>
 
+				{/* Input номера телефона */}
 				<Input
 					id='phone'
 					type='tel'
@@ -79,6 +85,8 @@ const PhoneStep: FC<IPhoneStepProps> = ({ onNextStep, onPhoneNumberChange }) => 
 						}
 					})}
 				/>
+
+				{/* Сообщение об ошибке валидации input с номером телефона */}
 				<FormErrorMessage
 					mb='2'
 					mt='0'
@@ -90,6 +98,7 @@ const PhoneStep: FC<IPhoneStepProps> = ({ onNextStep, onPhoneNumberChange }) => 
 				</FormErrorMessage>
 			</FormControl>
 
+			{/* Кнопка подтверждения номера телефона */}
 			<Button
 				type='submit'
 				w='full'

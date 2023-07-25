@@ -1,6 +1,7 @@
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex, Text } from '@chakra-ui/react'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, Flex } from '@chakra-ui/react'
 import { FC } from 'react'
 
+// Фейк массив с хлебными крошками
 const list = ['Главная', 'Личный кабинет', 'Настройки аккаунта']
 
 const MyBreadcrumb: FC = () => {
@@ -23,6 +24,7 @@ const MyBreadcrumb: FC = () => {
 						</svg>
 					</>
 				}>
+				{/* Рендер хлебных крошек */}
 				{list.map((item, i) => (
 					<BreadcrumbItem key={i}>
 						<BreadcrumbLink href='#' color='#8D94A6'>

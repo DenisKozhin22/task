@@ -4,11 +4,16 @@ import { Avatar, Button, Container, Flex, Link, Text } from '@chakra-ui/react'
 import { useActions } from '@/hooks/useActions'
 import { useAppSelector } from '@/hooks/useAppSelector'
 
+// Фейк список ссылок в header
 const list = ['Пункт 1', 'Пункт 2', 'Пункт 3', 'Пункт 4']
 
 const Header: FC = () => {
+	// Функция открытия модального окна авторизации
 	const { onOpenStateModal } = useActions()
+
+	// Данные пользователя из глобального хранилища
 	const { user } = useAppSelector(state => state.user)
+
 	return (
 		<>
 			<Flex w='full' h='16' bgColor='#fff'>
@@ -19,6 +24,7 @@ const Header: FC = () => {
 					justifyContent='space-between'
 					alignItems='center'>
 					<Flex gap='20px'>
+						{/* Рендер фейк ссылок */}
 						{list.map(item => (
 							<Link
 								key={item}
@@ -32,6 +38,7 @@ const Header: FC = () => {
 						))}
 					</Flex>
 
+					{/* Если пользователь авторизован, то будет рендерится компонет, который является ссылкой на личный кабинет. Иначе будет рендер компонента кнопки для открытия формы авторизации */}
 					{user?.id ? (
 						<Link as={NextLink} href='/user' display='flex' alignItems='center' gap='8px'>
 							<Avatar

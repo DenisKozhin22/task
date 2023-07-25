@@ -4,9 +4,15 @@ import { Box, Button, Flex, Text, Link } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import { FC } from 'react'
 
+// Шаг успешной авторизации 
 const SuccessfulRegistrationStep: FC = () => {
+	
+	// Метод для закрытия модального окна
 	const { onCloseStateModal } = useActions()
+
+	// Функция получение данных о пользователе
 	useGetUser()
+
 	return (
 		<Box>
 			<Flex justifyContent='center' mb='16px'>
@@ -84,6 +90,8 @@ const SuccessfulRegistrationStep: FC = () => {
 			<Text fontWeight='normal' fontSize='14px' lineHeight='22px' color='#32353D' mb='24px'>
 				Для более эффективного использования ресурса, рекомендуем заполнить профиль.
 			</Text>
+
+			{/* Ссылка на личный кабинет */}
 			<Link
 				as={NextLink}
 				href='/user'
@@ -100,6 +108,8 @@ const SuccessfulRegistrationStep: FC = () => {
 				_hover={{ bg: '#3579F3' }}>
 				Заполнить профиль
 			</Link>
+
+			{/* Кнопка закрытия модального окна */}
 			<Button
 				w='full'
 				mx='auto'

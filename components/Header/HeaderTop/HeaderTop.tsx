@@ -1,6 +1,6 @@
 'use client'
 
-import { Box, Container, Flex, Text } from '@chakra-ui/react'
+import {  Container, Flex, Text } from '@chakra-ui/react'
 import { FC } from 'react'
 
 const HeaderTop: FC = () => {
