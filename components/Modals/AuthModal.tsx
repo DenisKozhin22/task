@@ -23,7 +23,7 @@ const AuthModal: FC = () => {
 	const { onCloseStateModal, onOpenStateModal } = useActions()
 
 	// Состояние модального окна из глобального хранилища
-	const { isOpenModal, activeForm } = useAppSelector(state => state.modal)
+	const { isOpenModal } = useAppSelector(state => state.modal)
 
 	// Состояние номер шага формы
 	const [currentStep, setCurrentStep] = useState<number>(1)
