@@ -1,12 +1,18 @@
 'use client'
 
-import {  Container, Flex, Text } from '@chakra-ui/react'
+import { Container, Flex, Text } from '@chakra-ui/react'
 import { FC } from 'react'
 
 const HeaderTop: FC = () => {
 	return (
-		<Flex w='full' h='12' bgColor='#3579F3'>
-			<Container maxW='1190px' px='10px' display='flex' justifyContent='space-between' alignItems='center'>
+		<Flex w='full' bgColor='#3579F3'>
+			<Container
+				maxW='1190px'
+				px='10px'
+				display='flex'
+				justifyContent='space-between'
+				alignItems='center'
+				py='17px'>
 				<Flex alignItems='center' gap='4px'>
 					<svg
 						width='14'
@@ -20,10 +26,18 @@ const HeaderTop: FC = () => {
 						/>
 					</svg>
 
-					<Text color='white'>Красноярск</Text>
+					<Text color='white' fontWeight='semibold' fontSize='14px' lineHeight='16px'>
+						Красноярск
+					</Text>
 				</Flex>
 
-				<Flex alignItems='center' color='white' gap='40px'>
+				<Flex
+					alignItems='center'
+					color='white'
+					gap='40px'
+					fontWeight='semibold'
+					fontSize='14px'
+					lineHeight='16px'>
 					<Text>О проекте</Text>
 					<Text>Блог</Text>
 				</Flex>
